@@ -29,7 +29,7 @@ ALLOWED_HOSTS = []
 
 OKTA_API_TOKEN = '***REMOVED***'
 OKTA_ORG = '***REMOVED***'
-OKTA_SFDC_APP_NAME = 'salesforcex'
+OKTA_SFDC_APP_NAME = 'salesforce'
 
 # Application definition
 
