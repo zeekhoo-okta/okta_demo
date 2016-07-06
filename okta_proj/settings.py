@@ -27,8 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-OKTA_API_TOKEN = os.environ.get('OKTA_API_TOKEN')
-OKTA_ORG = os.environ.get('OKTA_ORG')
+#OKTA_API_TOKEN = os.environ.get('OKTA_API_TOKEN')
+#OKTA_ORG = os.environ.get('OKTA_ORG')
+OKTA_API_TOKEN = "***REMOVED***"
+OKTA_ORG = "***REMOVED***"
 OKTA_SFDC_APP_NAME = 'salesforce'
 
 # Application definition
