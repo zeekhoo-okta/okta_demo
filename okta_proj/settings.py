@@ -27,6 +27,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+OKTA_API_TOKEN = '***REMOVED***'
+OKTA_ORG = '***REMOVED***'
+OKTA_SFDC_APP_NAME = 'salesforce'
 
 # Application definition
 
@@ -37,6 +40,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'bootstrap3',
+    'django_forms_bootstrap',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -55,7 +61,7 @@ ROOT_URLCONF = 'okta_proj.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -106,9 +112,9 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Los_Angeles'
 
-USE_I18N = True
+USE_I18N = False
 
 USE_L10N = True
 

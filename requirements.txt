@@ -1,0 +1,7 @@
+Django==1.9.7
+django-bootstrap3==7.0.1
+django-forms-bootstrap==3.0.1
+okta==0.0.3
+python-dateutil==2.5.3
+requests==2.10.0
+six==1.10.0

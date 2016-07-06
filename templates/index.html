@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock title %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-lg-5">
+
+      <h1>Okta Exercise</h1>
+
+      <p>A demo of <a href="http://developer.okta.com">Okta developer platform</a>
+      <p>
+        <td>
+          <a class="btn btn-primary btn-cs" href="{% url 'login_user' %}">
+            Click this to get started
+          </a>
+        </td>
+      </p>
+    </div>
+
+  </div>
+{% endblock %}
