@@ -1,11 +1,9 @@
-from django.core.urlresolvers import reverse_lazy
+from django.conf import settings
 from django.http import HttpResponseRedirect
-
-from .forms import LoginForm
 from django.shortcuts import render
+from .forms import LoginForm
 from okta import UsersClient, AuthClient, SessionsClient, AppInstanceClient
 from okta.models.user import User
-from django.conf import settings
 
 
 def LoginView(request):
@@ -20,9 +18,6 @@ def LoginView(request):
             org = ''.join(['https://', settings.OKTA_ORG])
             token = settings.OKTA_API_TOKEN
             if un and pw and org and token:
-                print("username: {}".format(un))
-                print("password: {}".format(pw))
-
                 #usersClient = UsersClient(''.join(['https://', settings.OKTA_ORG]), settings.OKTA_API_TOKEN)
                 #zee = User(login='robot.zee1@email.com',
                 #           email='zee.robot@zeekhoo.com',
@@ -30,40 +25,48 @@ def LoginView(request):
                 #           lastName='Kman')
                 #u = usersClient.create_user(zee, activate=False)
 
-                status = ''
+                status = 'FAIL'
                 try:
                     authCli = AuthClient(org, token)
                     auth = authCli.authenticate(username=un, password=pw)
                     status = auth.status
                     print('status = {}'.format(status))
-                except Exception as e:
-                    oktaError = e
-                    print("error handling: {}".format(oktaError))
+                except Exception as oktaError:
                     form.add_error(field=None, error=oktaError)
 
-                cookie = ''
+                cookie = None
                 if status == 'SUCCESS':
                     session_token = auth.sessionToken
-                    print("session token = {}".format(session_token))
-                    sessionCli = SessionsClient(org, token)
-                    session = sessionCli.create_session_by_session_token(session_token=session_token,
-                                                                         additional_fields='cookieToken')
-                    cookie = session.cookieToken
-                    print("cookie = {}".format(cookie))
+                    try:
+                        sessionCli = SessionsClient(org, token)
+                        session = sessionCli.create_session_by_session_token(session_token=session_token,
+                                                                             additional_fields='cookieToken')
+                        cookie = session.cookieToken
+                    except Exception as oktaError:
+                        form.add_error(field=None, error=oktaError)
 
-                redirect = 'http://localhost:8000'
+                redirect = None
                 if cookie:
-                    appCli = AppInstanceClient(org, token)
-                    apps = appCli.get_app_instances()
+                    apps = None
+                    try:
+                        appCli = AppInstanceClient(org, token)
+                        apps = appCli.get_app_instances()
+                    except Exception as oktaError:
+                        form.add_error(field=None, error=oktaError)
+
                     for app in apps:
                         print("Apps: {}".format(app.name))
                         if app.name == settings.OKTA_SFDC_APP_NAME:
-                            x = '1'
-                    redirect = ''.join([org, '/login/sessionCookieRedirect?token=', cookie, '&redirectUrl=', redirect])
+                            if app._links:
+                                if app._links.appLinks:
+                                    for link in app._links.appLinks:
+                                        print("Link = {0} : {1}".format(link.name, link.href))
+                                        if link.name == 'mc':
+                                            redirect = link.href
 
-
-
-                return HttpResponseRedirect(redirect)
+                    if redirect:
+                        redirect = ''.join([org, '/login/sessionCookieRedirect?token=', cookie, '&redirectUrl=', redirect])
+                        return HttpResponseRedirect(redirect)
 
     # if a GET (or any other method) we'll create a blank form
     else:
