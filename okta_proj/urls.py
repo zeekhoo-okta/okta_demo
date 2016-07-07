@@ -16,7 +16,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.views import logout
-from .views import LoginView
+from .views import LoginView, RegistrationView, registration_success, message_no_saml
 from django.views.generic import TemplateView
 
 
@@ -31,4 +31,10 @@ urlpatterns = [
     url(r'^login/$', LoginView, name='login_user'),
     url(r'^logout/$', logout, name='logout_user'),
 
+    # Registration
+    url(r'^register/$', RegistrationView, name='register_user'),
+    url(r'^register/success/$', registration_success, name='registration_success'),
+
+    # Message
+    url(r'^login/message/$', message_no_saml, name='message_no_saml'),
 ]

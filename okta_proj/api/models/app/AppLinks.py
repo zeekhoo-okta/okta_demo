@@ -1,11 +1,15 @@
 class AppLinks:
 
     types = {
-        'href': str,
-        'name': str,
+        'id': str,
+        'label': str,
+        'linkUrl': str,
+        'appName': str,
     }
 
     def __init__(self):
 
-        self.name = None
-        self.href = None
+        self.id = None
+        self.label = None
+        self.linkUrl = None
+        self.appName = None
