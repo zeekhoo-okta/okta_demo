@@ -11,7 +11,7 @@ class LoginForm(forms.Form):
         regex=r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{4,30}$',
         widget=forms.PasswordInput(attrs=dict(required=True, max_length=30, render_value=False)),
         label=_("password"),
-        error_messages={'invalid': _("Must contain at least 1 digit, 1 uppercase letter, 1 lowercase letter")})
+        error_messages={'invalid': _("Minimum length 4. Must contain at least 1 digit, 1 uppercase letter, 1 lowercase letter")})
 
 
 class RegistrationForm(forms.Form):
@@ -22,14 +22,18 @@ class RegistrationForm(forms.Form):
         regex=r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{4,30}$',
         widget=forms.PasswordInput(attrs=dict(required=True, max_length=30, render_value=False)),
         label=_("password"),
-        error_messages={'invalid': _("Must contain at least 1 digit, 1 uppercase letter, 1 lowercase letter")})
+        error_messages={'invalid': _("Minimum length 4. Must contain at least 1 digit, 1 uppercase letter, 1 lowercase letter")})
     password2 = forms.RegexField(
         regex=r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{4,30}$',
         widget=forms.PasswordInput(attrs=dict(required=True, max_length=30, render_value=False)),
         label=_("password (again)"),
-        error_messages={'invalid': _("Must contain at least 1 digit, 1 uppercase letter, 1 lowercase letter")})
+        error_messages={'invalid': _("Minimum length 4. Must contain at least 1 digit, 1 uppercase letter, 1 lowercase letter")})
 
     def clean_email(self):
+        """
+        email field validation to check if the username is already in Okta
+
+        """
         readCount = 0
         try:
             usersClient = UsersClient(''.join(['https://', settings.OKTA_ORG]), settings.OKTA_API_TOKEN)
