@@ -5,13 +5,9 @@ __pycache__
 *.sqlite3
 .idea/*
 .env
-<<<<<<< HEAD
-=======
-.ebextensions/*
-.elasticbeanstalk/*
->>>>>>> e0b2cebc5c8b98d8e8f279dae8ab2088e1ef3c27
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
+.ebextensions/*
