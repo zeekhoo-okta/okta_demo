@@ -14,11 +14,7 @@ You can run this demo locally:
     pip install -r requirements.txt
     ```
 1. Rename ".env_copy" to ".env".
-1. Edit .env and provide your OKTA_API_TOKEN and OKTA domain name. In the example below, replace "secret" with your own API token. Replace <okta tennant subdomain> with your environment's subdomain
-    ```
-    export OKTA_API_TOKEN="secret"
-    export OKTA_ORG="<okta tennant subdomain>.oktapreview.com"
-    ```
+1. Edit .env and provide your OKTA_API_TOKEN and OKTA domain name. Replace "secret" with your own API token. Replace <okta tennant subdomain> with your environment's subdomain.
 1. Source env.
     ```bash
     source .env
