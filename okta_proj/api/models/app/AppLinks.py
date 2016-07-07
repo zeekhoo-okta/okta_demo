@@ -4,6 +4,7 @@ class AppLinks:
         'id': str,
         'label': str,
         'linkUrl': str,
+        'logoUrl': str,
         'appName': str,
     }
 
@@ -12,4 +13,5 @@ class AppLinks:
         self.id = None
         self.label = None
         self.linkUrl = None
+        self.logoUrl = None
         self.appName = None
