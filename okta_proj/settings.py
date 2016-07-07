@@ -27,7 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+<<<<<<< HEAD
 # Okta specific variables
+=======
+>>>>>>> e0b2cebc5c8b98d8e8f279dae8ab2088e1ef3c27
 OKTA_API_TOKEN = os.environ.get('OKTA_API_TOKEN')
 OKTA_ORG = os.environ.get('OKTA_ORG')
 OKTA_SFDC_APP_NAME = 'salesforce'
