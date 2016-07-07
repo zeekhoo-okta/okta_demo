@@ -8,12 +8,14 @@
           <input type="hidden" name="next" value="{{ next }}" />
         {% endif %}
         <h2>Please sign in with your Okta credentials</h2>
-        <div class="form-group">
+        <div class="form-group {% if form.username.errors %} has-error {% endif %}">
+            <p>{{ form.username.errors }}</p>
           <div class="col-sm-5">
-            <input type="text" class="form-control" id="username" name="username" placeholder="Username">
+            <input type="text" class="form-control" id="username" name="username" placeholder="Email">
           </div>
         </div>
-        <div class="form-group">
+        <div class="form-group {% if form.password.errors %} has-error {% endif %}">
+            <p>{{ form.password.errors }}</p>
           <div class="col-sm-5">
             <input type="password" class="form-control" id="password" name="password" placeholder="Password">
           </div>
@@ -28,5 +30,7 @@
           </div>
         </div>
       </form>
+      <a href="{% url 'register_user' %}">Don't have a login?</a>
+
     </div>
 {% endblock %}
