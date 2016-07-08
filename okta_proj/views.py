@@ -1,13 +1,11 @@
 from django.conf import settings
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
-from django.template import RequestContext
 from okta import AuthClient, SessionsClient, UsersClient
 from api.UsersResourceClient import UsersResourceClient
 from okta.models.user import User
 from .forms import LoginForm, RegistrationForm
 from django.views.decorators.csrf import csrf_protect
-from django.shortcuts import render_to_response
 from okta.models.user.LoginCredentials import LoginCredentials, Password
 
 org = ''.join(['https://', settings.OKTA_ORG])
