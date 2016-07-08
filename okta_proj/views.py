@@ -57,11 +57,10 @@ def RegistrationView(request):
     else:
         form = RegistrationForm()
 
-    variables = RequestContext(request, {'form': form})
-
-    return render_to_response('registration/register.html', variables)
+    return render(request, 'registration/register.html', {'form': form})
 
 
+@csrf_protect
 def LoginView(request):
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
@@ -70,7 +69,6 @@ def LoginView(request):
         if form.is_valid():
             un = form.cleaned_data['username']
             pw = form.cleaned_data['password']
-            print("logging in {0}".format(un))
             try:
                 # Create an auth client and post the username and password
                 authCli = AuthClient(org, token)
@@ -118,8 +116,8 @@ def LoginView(request):
 
 
 def registration_success(request):
-    return render_to_response('registration/success.html')
+    return render(request, 'registration/success.html')
 
 
 def message_no_saml(request):
-    return render_to_response('message.html')
+    return render(request, 'message.html')
