@@ -33,7 +33,7 @@
           {% if 'session' not in request.session %}
             <a class="navbar-brand" href="{% url 'home' %}">Home</a>
           {% else %}
-            <a class="navbar-brand" href="{% url 'dashboard' %}">{{dict.session.login}}</a>
+            <a class="navbar-brand" href="{% url 'dashboard' %}">Hi, {{dict.session.login}}</a>
           {% endif %}
 
           <button type="button" class="navbar-toggle btn btn-link" data-toggle="collapse" data-target="#navbar-responsive-collapse">

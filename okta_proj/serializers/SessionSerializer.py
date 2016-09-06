@@ -8,5 +8,5 @@ class SessionSerializer(serializers.Serializer):
     login = serializers.CharField()
     firstName = serializers.CharField()
     lastName = serializers.CharField()
-    stateToken = serializers.CharField(required=False)
-    factors = FactorSerializer(required=False, many=True)
+    stateToken = serializers.CharField(allow_null=True, required=False)
+    factors = FactorSerializer(required=False, many=True, allow_null=True)

@@ -25,8 +25,20 @@ OKTA_ORG = ''.join(['https://', settings.OKTA_ORG])
 API_TOKEN = settings.OKTA_API_TOKEN
 
 
+def view_home(request):
+    if 'session' in request.session:
+        return HttpResponseRedirect(reverse('dashboard'))
+
+    return render(request, 'index.html')
+
+
 @csrf_protect
 def LoginView(request):
+    c = None
+    session = None
+    if 'session' in request.session:
+        session = _getSession(request.session['session'])
+
     if request.method == 'POST':
         # create a form instance and populate it with data from the request:
         form = LoginForm(request.POST)
@@ -70,7 +82,8 @@ def LoginView(request):
     else:
         form = LoginForm()
 
-    return render(request, 'registration/login.html', {'form': form})
+    c = {'dict': {'session': session, 'form': form}}
+    return render(request, 'registration/login.html', c)
 
 
 def _setCookieTokenAndLoadDash(request, session_token):
@@ -99,9 +112,9 @@ def _setCookieTokenAndLoadDash(request, session_token):
 
 
 def SecondFAView(request):
-    session = _getSession(request.session['session'])
     c = None
-    if session is not None:
+    if 'session' in request.session:
+        session = _getSession(request.session['session'])
         c = {'dict': {'session': session}}
 
     return render(request, 'registration/second-fa.html', c)
@@ -197,8 +210,8 @@ def verify(request, p=None):
 
     if request.method == 'POST':
         form = mfaForm(request.POST)
-        session = _getSession(request.session['session'])
-        if session is not None:
+        if 'session' in request.session:
+            session = _getSession(request.session['session'])
             c = {'dict': {'session': session, 'form': form}}
 
         print("code = {0}, factor: {1}, token: {2}".format(request.POST['code'], request.POST['factorId'],
