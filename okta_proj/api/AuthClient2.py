@@ -28,7 +28,7 @@ class AuthClient2(AuthClient):
         return Utils.deserialize(response.text, AuthResult2)
 
 
-    def auth_with_factor(self, state_token, factor_id, passcode,
+    def auth_with_factor(self, state_token, factor_id, passcode=None,
                          relay_state=None, remember_device=None):
         request = {
             'stateToken': state_token,
@@ -39,9 +39,7 @@ class AuthClient2(AuthClient):
         params = {
             'rememberDevice': remember_device
         }
-        print('factor = {}'.format(request))
 
         response = ApiClient.post_path(self, '/factors/{0}/verify'.format(factor_id),
                                        request, params=params)
-        print('response = {}'.format(response.text))
         return Utils.deserialize(response.text, AuthResult2)

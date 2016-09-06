@@ -40,7 +40,7 @@
 
                                     <div class="form-group">
                                         {% if fact.factorType == 'sms' %}
-                                        <button type="button" class="btn btn-info btn-sm">Get Code</button>
+                                        <button type="submit" name="get_code" class="btn btn-info btn-sm">Get Code</button>
                                         {% endif %}
                                     </div>
 
@@ -61,7 +61,7 @@
                                         <input class="hidden" type="text" name="provider" value="{{ fact.provider }}">
                                     </div>
 
-                                    <button type="submit" class="btn btn-default btn-sm">Verify</button>
+                                    <button type="submit" name="verify_code" class="btn btn-default btn-sm">Verify</button>
                                 </form>
 
                             </div>

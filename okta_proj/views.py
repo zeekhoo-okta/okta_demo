@@ -99,12 +99,9 @@ def _setCookieTokenAndLoadDash(request, session_token):
 
 
 def SecondFAView(request):
-    json = request.session['session']
+    session = _getSession(request.session['session'])
     c = None
-    if json is not None:
-        serializer = SessionSerializer(data=JSONParser().parse(BytesIO(json)))
-        serializer.is_valid(raise_exception=True)
-        session = serializer.validated_data
+    if session is not None:
         c = {'dict': {'session': session}}
 
     return render(request, 'registration/second-fa.html', c)
@@ -185,30 +182,44 @@ def registration_success(request):
     return render(request, 'registration/success.html')
 
 
+def _getSession(json):
+    if json is not None:
+        serializer = SessionSerializer(data=JSONParser().parse(BytesIO(json)))
+        serializer.is_valid(raise_exception=True)
+        return serializer.validated_data
+
+    return None
+
+
 @csrf_protect
 def verify(request, p=None):
     c = None
 
     if request.method == 'POST':
         form = mfaForm(request.POST)
+        session = _getSession(request.session['session'])
+        if session is not None:
+            c = {'dict': {'session': session, 'form': form}}
 
-        print("code = {0}, factor: {1}, token: {2}".format(request.POST['code'], request.POST['factorId'], request.POST['stateToken']))
+        print("code = {0}, factor: {1}, token: {2}".format(request.POST['code'], request.POST['factorId'],
+                                                           request.POST['stateToken']))
         authCli = AuthClient2(OKTA_ORG, API_TOKEN)
 
         try:
+            pass_code = None
+            if 'verify_code' in request.POST:
+                pass_code = request.POST['code']
+
             auth = authCli.auth_with_factor(state_token=request.POST['stateToken'],
-                                     factor_id=request.POST['factorId'],
-                                     passcode=request.POST['code'])
-            status = auth.status
-            if status == 'SUCCESS':
+                                            factor_id=request.POST['factorId'],
+                                            passcode=pass_code)
+
+            if auth.status == 'SUCCESS':
                 return _setCookieTokenAndLoadDash(request, auth.sessionToken)
-        except Exception as faError:
-            form.add_error(field=None, error=faError)
-            json = request.session['session']
-            if json is not None:
-                serializer = SessionSerializer(data=JSONParser().parse(BytesIO(json)))
-                serializer.is_valid(raise_exception=True)
-                session = serializer.validated_data
-                c = {'dict': {'session': session, 'form': form}}
+
+        except Exception as err:
+            form.add_error(field=None, error=err)
 
     return render(request, 'registration/second-fa.html', c)
+
+
