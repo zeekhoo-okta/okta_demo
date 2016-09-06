@@ -3,20 +3,26 @@
 {% block title %}Home{% endblock title %}
 
 {% block content %}
-  <div class="row">
-    <div class="col-lg-5">
+<div class="intro-pg">
 
-      <h1>Okta Exercise</h1>
+    <div class="row">
+      <div class="col-lg-12">
+        <div class="intro-message">
+          <h1>Okta Demo</h1>
 
-      <p>A short demo of the <a href="http://developer.okta.com">Okta developer platform</a>
-      <p>
-        <td>
-          <a class="btn btn-primary btn-cs" href="{% url 'login_user' %}">
-            Click here to get started
-          </a>
-        </td>
-      </p>
+          <p>Roll your own with the <a href="http://developer.okta.com" target="_blank" class="ref-lb">Okta developer platform</a>
+          </p>
+          <td>
+            <a class="btn btn-primary btn-cs" href="{% url 'login_user' %}">
+              Click here to see the demo
+            </a>
+          </td>
+
+        </div>>
+      </div>
+
     </div>
 
-  </div>
+</div>
+
 {% endblock %}

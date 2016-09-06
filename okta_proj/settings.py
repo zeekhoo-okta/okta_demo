@@ -30,7 +30,6 @@ ALLOWED_HOSTS = []
 # Okta specific variables
 OKTA_API_TOKEN = os.environ.get('OKTA_API_TOKEN')
 OKTA_ORG = os.environ.get('OKTA_ORG')
-OKTA_SFDC_APP_NAME = 'salesforce'
 
 # Application definition
 
@@ -44,6 +43,7 @@ INSTALLED_APPS = [
 
     'bootstrap3',
     'django_forms_bootstrap',
+    'rest_framework',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -124,5 +124,8 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
+STATICFILES_DIRS = [
+    '/Users/zeekhoo/Projects/PyCharm/okta_demo/okta_proj/static',
+]
 
 STATIC_URL = '/static/'

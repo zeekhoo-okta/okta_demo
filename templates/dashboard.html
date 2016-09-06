@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block head %}
+ Login was successful
+{% endblock %}
+{% block content %}
+<div class="container">
+    {% if 'session' in request.session %}
+    <h2 sessionUserId="{{dict.session.userId}}">Welcome {{dict.session.firstName}} {{dict.session.lastName}}</h2>
+
+    <script>
+        userId = document.getElementsByTagName("H2")[0].getAttribute("sessionUserId");
+        var xhttp = new XMLHttpRequest();
+        url = "https://zeekhoo.okta.com/api/v1/users/" + userId + "/appLinks"
+
+        xhttp.onreadystatechange = function() {
+            var linksJson = JSON.parse(xhttp.responseText);
+            drawTable(linksJson);
+        }
+        xhttp.open("GET", url, true);
+        xhttp. withCredentials = true;
+        xhttp.send();
+
+        function drawTable(tableData) {
+            var i;
+            var draw = "";
+            for(i = 0; i < tableData.length; i++) {
+                draw += '<tr><td>' +
+                '<a href="' + tableData[i].linkUrl + '" target="_blank">' +
+                '<img src="' + tableData[i].logoUrl + '" class="img-rounded"><br>' +
+                '<label>' + tableData[i].label + '</label>' +
+                '</a>' +
+                '</td></tr>';
+            }
+            document.getElementById("demo").innerHTML = draw;
+        }
+    </script>
+
+    <table class = "table table-striped table-hover">
+        <caption>MY APPS:</caption>
+        <tbody id="demo">
+        </tbody>
+    </table>
+
+
+    {% else %}
+    <h2>Please log in</h2>
+    {% endif %}
+</div>
+{% endblock %}

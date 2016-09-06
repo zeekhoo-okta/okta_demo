@@ -1,6 +1,9 @@
 Django==1.9.7
 django-bootstrap3==7.0.1
+django-filter==0.13.0
 django-forms-bootstrap==3.0.1
+djangorestframework==3.4.5
+Markdown==2.6.6
 okta==0.0.3
 python-dateutil==2.5.3
 requests==2.10.0

@@ -1,36 +1,55 @@
 {% extends "base.html" %}
+{% block title %}Login{% endblock title %}
 
 {% block content %}
-    <div id="login">
-      <form class="form-horizontal" name="LoginForm" action="{% url 'login_user' %}" method="post">
-        {% csrf_token %}
-        {% if next %}
-          <input type="hidden" name="next" value="{{ next }}" />
-        {% endif %}
-        <h2>Please sign in with your Okta credentials</h2>
-        <div class="form-group {% if form.username.errors %} has-error {% endif %}">
-            <p>{{ form.username.errors }}</p>
-          <div class="col-sm-3">
-            <input type="text" class="form-control" id="username" name="username" placeholder="Email">
+<div class="container">
+  <div class="login-container">
+
+
+    <div class="panel panel-default">
+      <div class="login-style">
+
+        <div class="panel-body">
+
+          <div id="login_form">
+            <form class="form-horizontal" name="LoginForm" action="{% url 'login_user' %}" method="post">
+              {% csrf_token %}
+              {% if next %}
+                <input type="hidden" name="next" value="{{ next }}" />
+              {% endif %}
+              <h2>Please sign-in</h2>
+              <div class="form-group {% if form.username.errors %} has-error {% endif %}">
+                  <p>{{ form.username.errors }}</p>
+                <div class="col-sm-4">
+                  <input type="text" class="form-control" id="un" name="username" placeholder="Email">
+                </div>
+              </div>
+              <div class="form-group {% if form.password.errors %} has-error {% endif %}">
+                  <p>{{ form.password.errors }}</p>
+                <div class="col-sm-4">
+                  <input type="password" class="form-control" id="pw" name="password" placeholder="Password">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-0 col-sm-4">
+                  {% if form.errors %}
+                    <p>{{ form.non_field_errors }}</p>
+                    <p>Your username and password didn't match. Please try again.</p>
+                  {% endif %}
+                  <button type="submit" class="btn btn-block btn-primary">Sign in</button>
+                </div>
+              </div>
+            </form>
+            Don't have a login? <a href="{% url 'register_user' %}"> Click here to sign up</a>
+
           </div>
+
         </div>
-        <div class="form-group {% if form.password.errors %} has-error {% endif %}">
-            <p>{{ form.password.errors }}</p>
-          <div class="col-sm-3">
-            <input type="password" class="form-control" id="password" name="password" placeholder="Password">
-          </div>
-        </div>
-        <div class="form-group">
-          <div class="col-sm-offset-0 col-sm-3">
-            {% if form.errors %}
-              <p>{{ form.non_field_errors }}</p>
-              <p>Your username and password didn't match. Please try again.</p>
-            {% endif %}
-            <button type="submit" value="login" class="btn btn-block btn-primary">Sign in</button>
-          </div>
-        </div>
-      </form>
-      <a href="{% url 'register_user' %}">Don't have a login?</a>
+
+      </div>
 
     </div>
+
+  </div>
+</div>
 {% endblock %}

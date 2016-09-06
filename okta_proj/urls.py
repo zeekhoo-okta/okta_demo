@@ -2,8 +2,7 @@
 """
 from django.conf.urls import url
 from django.contrib import admin
-from django.contrib.auth.views import logout
-from .views import LoginView, RegistrationView, registration_success, message_no_saml
+from .views import LoginView, SecondFAView, RegistrationView, registration_success, dashboard, logout, verify
 from django.views.generic import TemplateView
 
 
@@ -16,12 +15,17 @@ urlpatterns = [
 
     # Login and logout views
     url(r'^login/$', LoginView, name='login_user'),
+    url(r'^login/second-fa/$', SecondFAView, name='second_fa'),
     url(r'^logout/$', logout, name='logout_user'),
 
     # Registration
     url(r'^register/$', RegistrationView, name='register_user'),
     url(r'^register/success/$', registration_success, name='registration_success'),
 
-    # App message
-    url(r'^login/message/$', message_no_saml, name='message_no_saml'),
+    # user logged in
+    url(r'^dashboard/$', dashboard, name='dashboard'),
+
+    #  verify 2fa
+    url(r'^login/second-fa/verify/(?P<p>[a-zA-Z0-9]+)/$', verify, name='verify'),
+
 ]

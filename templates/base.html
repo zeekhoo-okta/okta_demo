@@ -1,11 +1,12 @@
 {% load bootstrap3 %}
+{% load staticfiles %}
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>{% block title %}{% endblock title %} - Zee's Okta Homework</title>
+    <title>{% block title %}{% endblock title %} - Okta Demo</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
@@ -16,31 +17,54 @@
     <!-- CSS -->
     {% bootstrap_css %}
 
-    {% block page_css %}{% endblock %}
+    <!-- Custom CSS -->
+    <link href="{% static 'css/demo.css' %}" rel="stylesheet">
+
+    {% block page_css %}
+    {% endblock %}
   </head>
 
   <body>
 
-    <div class="navbar navbar-inverse navbar-static-top">
+    <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="container">
-        <a class="navbar-brand" href="/">Home</a>
-        <!--<div class="navbar-collapse collapse navbar-responsive-collapse">
+
+        <div class="navbar-header">
+          {% if 'session' not in request.session %}
+            <a class="navbar-brand" href="{% url 'home' %}">Home</a>
+          {% else %}
+            <a class="navbar-brand" href="{% url 'dashboard' %}">{{dict.session.login}}</a>
+          {% endif %}
+
+          <button type="button" class="navbar-toggle btn btn-link" data-toggle="collapse" data-target="#navbar-responsive-collapse">
+            <span class = "sr-only">Toggle navigation</span>
+            <span>Menu <b class = "caret"></b></span>
+          </button>
+        </div>
+
+        <div class="navbar-collapse collapse" id="navbar-responsive-collapse">
           <ul class="nav navbar-nav">
-            {% if not session %}
-              <li><a href="{% url 'login_user' %}">login</a></li>
+            {% if 'session' not in request.session %}
+              <li><a href="{% url 'login_user' %}">Login</a></li>
             {% else %}
-              <li><a href="{% url 'logout_user' %}">logout</a></li>
+              <li><a href="{% url 'logout_user' %}">Logout</a></li>
             {% endif %}
           </ul>
-        </div>-->
+        </div>
       </div>
     </div>
 
-
     <div class="container">
-      {% bootstrap_messages %}
-      {% block content %}{% endblock content %}
-    </div> <!-- /container -->
+    {% bootstrap_messages %}
+    </div>
+
+
+    <div class="bg-fill">
+      {% block content %}
+      {% endblock content %}
+    </div>
+
+
 
     <!-- JavaScript -->
     {% bootstrap_javascript jquery=1 %}

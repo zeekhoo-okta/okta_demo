@@ -1,0 +1,46 @@
+
+
+.wrap-main {
+    padding-top: 50px;
+    padding-bottom: 50px;
+}
+
+.bg-fill {
+    padding-top: 50px; /* If you're making other pages, make sure there is 50px of padding to make sure the navbar doesn't overlap content! */
+    padding-bottom: 50px;
+}
+
+.intro-message {
+    background: url(http://cdn.funcheap.com/wp-content/uploads/2013/05/financial-district-san-francisco-california.jpg) no-repeat center center;
+    background-size: cover;
+    position: relative;
+    padding-top: 20%;
+    padding-bottom: 20%;
+}
+
+.intro-pg {
+    text-align: center;
+    color: #ffffff;
+}
+
+.login-container {
+    position: relative;
+    padding-top: 10%;
+    padding-bottom: 15%;
+    padding-left: 5%;
+    padding-right: 5%;
+}
+
+.login-style {
+    background-color: #EDEDED;
+    box-shadow:  3px 3px 5px #888888;
+}
+
+
+.ref-lb {
+    color: #99d6ff;
+}
+
+.hidden {
+    display: none;
+}

@@ -1,15 +1,138 @@
 from django.conf import settings
+from django.contrib.sites.shortcuts import get_current_site
+from django.core import serializers
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.utils.six import BytesIO
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, requires_csrf_token
 from okta import AuthClient, SessionsClient, UsersClient
-from api.UsersResourceClient import UsersResourceClient
+from okta.framework.ApiClient import ApiClient
+from okta.framework.Utils import Utils
+from okta.models.session.Session import Session
 from okta.models.user import User
-from .forms import LoginForm, RegistrationForm
-from django.views.decorators.csrf import csrf_protect
 from okta.models.user.LoginCredentials import LoginCredentials, Password
+from rest_framework.parsers import JSONParser
+from rest_framework.renderers import JSONRenderer
 
-org = ''.join(['https://', settings.OKTA_ORG])
-token = settings.OKTA_API_TOKEN
+from api.AuthClient2 import AuthClient2
+from api.UsersResourceClient import UsersResourceClient
+from okta_proj.api.models.session.UserSession import UserSession
+from serializers.SessionSerializer import SessionSerializer
+from .forms import LoginForm, RegistrationForm, mfaForm
+
+OKTA_ORG = ''.join(['https://', settings.OKTA_ORG])
+API_TOKEN = settings.OKTA_API_TOKEN
+
+
+@csrf_protect
+def LoginView(request):
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = LoginForm(request.POST)
+
+        if form.is_valid():
+            un = form.cleaned_data['username']
+            pw = form.cleaned_data['password']
+
+            try:
+                # Create an auth client and post the username and password
+                authCli = AuthClient2(OKTA_ORG, API_TOKEN)
+                auth = authCli.authenticate(username=un, password=pw)
+                status = auth.status
+                print('status = {}'.format(status))
+
+                if status == 'MFA_REQUIRED':
+                    if auth.stateToken is not None and auth.embedded is not None:
+                        mfa_factors = auth.embedded.factors
+                        user = auth.embedded.user
+                        s = UserSession(id='2fa_state', userId=user.id,
+                                        login=user.profile.login,
+                                        firstName=user.profile.firstName,
+                                        lastName=user.profile.lastName,
+                                        stateToken=auth.stateToken,
+                                        factors=mfa_factors)
+
+                        serializer = SessionSerializer(s)
+                        json = JSONRenderer().render(serializer.data)
+                        request.session['session'] = json
+
+                        return HttpResponseRedirect(reverse('second_fa'))
+
+                # If authentication is successful, exchange the session token for a session cookie
+                if status == 'SUCCESS':
+                    return _setCookieTokenAndLoadDash(request, auth.sessionToken)
+
+            except Exception as oktaError:
+                form.add_error(field=None, error=oktaError)
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = LoginForm()
+
+    return render(request, 'registration/login.html', {'form': form})
+
+
+def _setCookieTokenAndLoadDash(request, session_token):
+    sessionCli = SessionsClient(OKTA_ORG, API_TOKEN)
+    session = sessionCli.create_session_by_session_token(session_token=session_token, additional_fields='cookieToken')
+
+    # Redirect to the message page if the Salesforce app is not assigned to this user
+    redirect = ''.join(['http://', get_current_site(request).domain, reverse('dashboard')])
+
+    postback = ''.join([OKTA_ORG, '/login/sessionCookieRedirect?token=', session.cookieToken,
+                        '&redirectUrl=', redirect])
+
+    usersResourceClient = UsersResourceClient(OKTA_ORG, API_TOKEN)
+    user = usersResourceClient.get_user(uid=session.userId)
+
+    # Setup THIS app's session now that we've posted the Okta session
+    s = UserSession(id=session.id, userId=session.userId,
+                    login=user.profile.login,
+                    firstName=user.profile.firstName,
+                    lastName=user.profile.lastName
+                    )
+    serializer = SessionSerializer(s)
+    request.session['session'] = JSONRenderer().render(serializer.data)
+
+    return HttpResponseRedirect(postback)
+
+
+def SecondFAView(request):
+    json = request.session['session']
+    c = None
+    if json is not None:
+        serializer = SessionSerializer(data=JSONParser().parse(BytesIO(json)))
+        serializer.is_valid(raise_exception=True)
+        session = serializer.validated_data
+        c = {'dict': {'session': session}}
+
+    return render(request, 'registration/second-fa.html', c)
+
+
+def dashboard(request):
+    if 'session' in request.session:
+        json = request.session['session']
+        session = Utils.deserialize(json, UserSession)
+        print('This session belongs to {0} {1} {2}'.format(session.firstName, session.lastName, session.userId))
+
+        c = {'dict': {'session': session}}
+        return render(request, 'dashboard.html', c)
+
+    return render(request, 'dashboard.html')
+
+
+def logout(request):
+    if 'session' in request.session:
+        try:
+            sessionCli = SessionsClient(OKTA_ORG, API_TOKEN)
+            sessionCli.clear_session(session.id)
+        except Exception as e:
+            print('some error: {}'.format(e))
+
+        del request.session['session']
+
+    return render(request, 'logged_out.html')
 
 
 @csrf_protect
@@ -24,7 +147,7 @@ def RegistrationView(request):
 
             try:
                 # Create a user client
-                usersClient = UsersClient(org, token)
+                usersClient = UsersClient(OKTA_ORG, API_TOKEN)
 
                 # Create credentials object to hold the password for this user
                 password = Password()
@@ -32,7 +155,7 @@ def RegistrationView(request):
                 creds = LoginCredentials()
                 creds.password = password
 
-                # User to create. Load the password/credentials also
+                # user to create. Load the password/credentials also
                 u = User(login=email,
                          email=email,
                          firstName=fn,
@@ -46,7 +169,7 @@ def RegistrationView(request):
                 profile = result.profile
                 # If successfully created, return to the success message page
                 if profile.login == email:
-                    return HttpResponseRedirect('/register/success/')
+                    return HttpResponseRedirect(reverse('registration_success'))
 
             except Exception as e:
                 print("Error: {}".format(e))
@@ -58,64 +181,34 @@ def RegistrationView(request):
     return render(request, 'registration/register.html', {'form': form})
 
 
-@csrf_protect
-def LoginView(request):
-    if request.method == 'POST':
-        # create a form instance and populate it with data from the request:
-        form = LoginForm(request.POST)
-
-        if form.is_valid():
-            un = form.cleaned_data['username']
-            pw = form.cleaned_data['password']
-            try:
-                # Create an auth client and post the username and password
-                authCli = AuthClient(org, token)
-                auth = authCli.authenticate(username=un, password=pw)
-                status = auth.status
-                print('status = {}'.format(status))
-                # If authentication is successful, exchange the session token for a session cookie
-                if status == 'SUCCESS':
-                    session_token = auth.sessionToken
-
-                    # Create a session client
-                    sessionCli = SessionsClient(org, token)
-                    # Post the session token and get the session cookie token
-                    session = sessionCli.create_session_by_session_token(session_token=session_token,
-                                                                         additional_fields='cookieToken')
-                    cookie = session.cookieToken
-
-                    # We'll use the userId to get the user's app links
-                    uid = session.userId
-                    # Create a user client
-                    usersClient = UsersResourceClient(org, token)
-                    # Get the app links
-                    appLinks = usersClient.get_app_links(uid=uid)
-
-                    # Redirect to the message page if the Salesforce app is not assigned to this user
-                    redirect = request.build_absolute_uri() + 'message'
-
-                    for appLink in appLinks:
-                        # Found the salesforce app in the app links. Get its redirect url and we'll redirect to it
-                        if appLink.appName == settings.OKTA_SFDC_APP_NAME:
-                            redirect = appLink.linkUrl
-
-                    redirect = ''.join([org, '/login/sessionCookieRedirect?token=', cookie,
-                                        '&redirectUrl=', redirect])
-                    return HttpResponseRedirect(redirect)
-
-            except Exception as oktaError:
-                form.add_error(field=None, error=oktaError)
-
-    # if a GET (or any other method) we'll create a blank form
-    else:
-        form = LoginForm()
-
-    return render(request, 'registration/login.html', {'form': form})
-
-
 def registration_success(request):
     return render(request, 'registration/success.html')
 
 
-def message_no_saml(request):
-    return render(request, 'message.html')
+@csrf_protect
+def verify(request, p=None):
+    c = None
+
+    if request.method == 'POST':
+        form = mfaForm(request.POST)
+
+        print("code = {0}, factor: {1}, token: {2}".format(request.POST['code'], request.POST['factorId'], request.POST['stateToken']))
+        authCli = AuthClient2(OKTA_ORG, API_TOKEN)
+
+        try:
+            auth = authCli.auth_with_factor(state_token=request.POST['stateToken'],
+                                     factor_id=request.POST['factorId'],
+                                     passcode=request.POST['code'])
+            status = auth.status
+            if status == 'SUCCESS':
+                return _setCookieTokenAndLoadDash(request, auth.sessionToken)
+        except Exception as faError:
+            form.add_error(field=None, error=faError)
+            json = request.session['session']
+            if json is not None:
+                serializer = SessionSerializer(data=JSONParser().parse(BytesIO(json)))
+                serializer.is_valid(raise_exception=True)
+                session = serializer.validated_data
+                c = {'dict': {'session': session, 'form': form}}
+
+    return render(request, 'registration/second-fa.html', c)
