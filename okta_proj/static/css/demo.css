@@ -11,7 +11,7 @@
 }
 
 .intro-message {
-    background: url(http://cdn.funcheap.com/wp-content/uploads/2013/05/financial-district-san-francisco-california.jpg) no-repeat center center;
+    /*background: url(http://cdn.funcheap.com/wp-content/uploads/2013/05/financial-district-san-francisco-california.jpg) no-repeat center center;*/
     background-size: cover;
     position: relative;
     padding-top: 20%;
@@ -20,7 +20,7 @@
 
 .intro-pg {
     text-align: center;
-    color: #ffffff;
+    color: #d2e0e0;
 }
 
 .login-container {
