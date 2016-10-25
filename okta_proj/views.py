@@ -2,10 +2,12 @@ from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
 from django.core import serializers
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.utils.six import BytesIO
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie, requires_csrf_token
+from django.http import HttpResponseRedirect, HttpResponse
+
+#from django.views.decorators.csrf import csrf_protect
+
 from okta import AuthClient, SessionsClient, UsersClient
 from okta.framework.ApiClient import ApiClient
 from okta.framework.Utils import Utils
@@ -32,7 +34,6 @@ def view_home(request):
     return render(request, 'index.html')
 
 
-@csrf_protect
 def LoginView(request):
     c = None
     session = None
@@ -90,7 +91,6 @@ def _setCookieTokenAndLoadDash(request, session_token):
     sessionCli = SessionsClient(OKTA_ORG, API_TOKEN)
     session = sessionCli.create_session_by_session_token(session_token=session_token, additional_fields='cookieToken')
 
-    # Redirect to the message page if the Salesforce app is not assigned to this user
     redirect = ''.join(['http://', get_current_site(request).domain, reverse('dashboard')])
 
     postback = ''.join([OKTA_ORG, '/login/sessionCookieRedirect?token=', session.cookieToken,
@@ -145,7 +145,6 @@ def logout(request):
     return render(request, 'logged_out.html')
 
 
-@csrf_protect
 def RegistrationView(request):
     if request.method == 'POST':
         form = RegistrationForm(request.POST)
@@ -204,7 +203,6 @@ def _getSession(json):
     return None
 
 
-@csrf_protect
 def verify(request, p=None):
     c = None
 
