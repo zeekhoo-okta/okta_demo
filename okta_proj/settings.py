@@ -27,7 +27,7 @@ DEBUG = os.environ.get('DEBUG')
 
 ALLOWED_HOSTS = [
     'localhost', '127.0.0.1', '[::1]',
-    'okta-demo.us-west-2.elasticbeanstalk.com'
+    'okta-demo-dev.us-west-2.elasticbeanstalk.com'
     ]
 
 # Okta specific variables
