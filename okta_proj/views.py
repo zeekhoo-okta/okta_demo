@@ -1,27 +1,27 @@
+import json
+
 from django.conf import settings
 from django.contrib.sites.shortcuts import get_current_site
-from django.core import serializers
 from django.core.urlresolvers import reverse
 from django.shortcuts import render
 from django.utils.six import BytesIO
 from django.http import HttpResponseRedirect, HttpResponse
 
-#from django.views.decorators.csrf import csrf_protect
-
 from okta import AuthClient, SessionsClient, UsersClient
 from okta.framework.ApiClient import ApiClient
 from okta.framework.Utils import Utils
 from okta.models.session.Session import Session
-from okta.models.user import User
-from okta.models.user.LoginCredentials import LoginCredentials, Password
+from okta.models.user import User, UserProfile
+from okta.models.user.LoginCredentials import LoginCredentials, Password, RecoveryQuestion
 from rest_framework.parsers import JSONParser
 from rest_framework.renderers import JSONRenderer
 
 from api.AuthClient2 import AuthClient2
+from api.RestClient import RestClient
 from api.UsersResourceClient import UsersResourceClient
 from okta_proj.api.models.session.UserSession import UserSession
 from serializers.SessionSerializer import SessionSerializer
-from .forms import LoginForm, RegistrationForm, mfaForm
+from .forms import LoginForm, RegistrationForm, mfaForm, ActivationForm
 
 OKTA_ORG = ''.join(['https://', settings.OKTA_ORG])
 API_TOKEN = settings.OKTA_API_TOKEN
@@ -47,6 +47,11 @@ def LoginView(request):
         if form.is_valid():
             un = form.cleaned_data['username']
             pw = form.cleaned_data['password']
+
+            redirect = None
+            form_value = form.cleaned_data['redirect']
+            if form_value.startswith('http'):
+                redirect = form_value
 
             try:
                 # Create an auth client and post the username and password
@@ -74,10 +79,12 @@ def LoginView(request):
 
                 # If authentication is successful, exchange the session token for a session cookie
                 if status == 'SUCCESS':
-                    return _setCookieTokenAndLoadDash(request, auth.sessionToken)
+                    return _setCookieTokenAndLoadDash(request=request, session_token=auth.sessionToken, redirectUri=redirect)
 
             except Exception as oktaError:
                 form.add_error(field=None, error=oktaError)
+        else:
+            print('Form is not valid')
 
     # if a GET (or any other method) we'll create a blank form
     else:
@@ -87,11 +94,41 @@ def LoginView(request):
     return render(request, 'registration/login.html', c)
 
 
-def _setCookieTokenAndLoadDash(request, session_token):
+def session(request):
+    if request.method == 'POST':
+        session = json.loads(request.body)
+        print('session = {}'.format(session))
+        user_id = session['userId']
+        print('session = {}'.format(session['id']))
+
+        usersResourceClient = UsersResourceClient(OKTA_ORG, API_TOKEN)
+        user = usersResourceClient.get_user(uid=user_id)
+        s = UserSession(id=session['id'], userId=session['userId'],
+                        login=user.profile.login,
+                        firstName=user.profile.firstName,
+                        lastName=user.profile.lastName
+                        )
+        serializer = SessionSerializer(s)
+        request.session['session'] = JSONRenderer().render(serializer.data)
+        request.session['id'] = session['id']
+
+        response = HttpResponse()
+        response.status_code = 200
+        return response
+
+    return HttpResponseRedirect(reverse('home'))
+
+
+
+def _setCookieTokenAndLoadDash(request, session_token, redirectUri=None):
     sessionCli = SessionsClient(OKTA_ORG, API_TOKEN)
     session = sessionCli.create_session_by_session_token(session_token=session_token, additional_fields='cookieToken')
 
-    redirect = ''.join(['http://', get_current_site(request).domain, reverse('dashboard')])
+    if redirectUri is not None and redirectUri.startswith('http'):
+        print('redirect uri = {}'.format(redirectUri))
+        redirect = redirectUri
+    else:
+        redirect = ''.join(['http://', get_current_site(request).domain, reverse('dashboard')])
 
     postback = ''.join([OKTA_ORG, '/login/sessionCookieRedirect?token=', session.cookieToken,
                         '&redirectUrl=', redirect])
@@ -132,11 +169,19 @@ def dashboard(request):
     return render(request, 'dashboard.html')
 
 
+def intranet(request):
+    return render(request, 'intranet.html')
+
+
 def logout(request):
     if 'session' in request.session:
         try:
-            sessionCli = SessionsClient(OKTA_ORG, API_TOKEN)
-            sessionCli.clear_session(session.id)
+            json = request.session['session']
+            session = Utils.deserialize(json, UserSession)
+
+            #sessionCli = SessionsClient(OKTA_ORG, API_TOKEN)
+            #print('logging out session {}'.format(session.id))
+            #sessionCli.clear_session(session.id)
         except Exception as e:
             print('some error: {}'.format(e))
 
@@ -166,18 +211,38 @@ def RegistrationView(request):
 
                 # user to create. Load the password/credentials also
                 u = User(login=email,
-                         email=email,
+                         email='zee.khoo@okta.com',
                          firstName=fn,
                          lastName=ln
                          )
                 u.credentials = creds
 
                 # Post the user to the create user API
-                result = usersClient.create_user(u, activate=True)
+                result = usersClient.create_user(u, activate=False)
+
                 # Check the return to see if the user has been created
                 profile = result.profile
                 # If successfully created, return to the success message page
                 if profile.login == email:
+                    user_id = result.id
+                    print('created user {}'.format(user_id))
+
+                    rc = RestClient(OKTA_ORG, API_TOKEN)
+
+                    # Create user in default group
+                    groupadded = rc.group_add('00gxb3pl2cWg2mFGP1t6', user_id)
+
+                    redirect = form.cleaned_data['redirect']
+                    lang = form.cleaned_data['lang']
+                    profile_data = {
+                        "id": user_id,
+                        "profile": {
+                            "registration_redirect_url": redirect,
+                            "lang": lang
+                        }
+                    }
+                    rc.users_post(user_id=user_id, post_data=profile_data)
+
                     return HttpResponseRedirect(reverse('registration_success'))
 
             except Exception as e:
@@ -192,6 +257,49 @@ def RegistrationView(request):
 
 def registration_success(request):
     return render(request, 'registration/success.html')
+
+
+def ActivationView(request, userid):
+    print('activating user {}'.format(userid))
+
+    if request.method == 'POST':
+        # create a form instance and populate it with data from the request:
+        form = ActivationForm(request.POST)
+
+        if form.is_valid():
+            pw = form.cleaned_data['password']
+
+            try:
+                rc = RestClient(OKTA_ORG, API_TOKEN)
+                activated = rc.user_activate(userid)
+
+                # If authentication is successful, exchange the session token for a session cookie
+                if activated == 200:
+                    user = rc.users_get(userid)
+                    profile = user['profile']
+                    login = profile['login']
+                    redirect = profile['registration_redirect_url']
+
+                    authCli = AuthClient2(OKTA_ORG, API_TOKEN)
+                    auth = authCli.authenticate(username=login, password=pw)
+                    status = auth.status
+                    print('login status = {}'.format(status))
+                    if status == 'SUCCESS':
+                        return _setCookieTokenAndLoadDash(request=request, session_token=auth.sessionToken,
+                                                          redirectUri=redirect)
+
+
+            except Exception as oktaError:
+                form.add_error(field=None, error=oktaError)
+        else:
+            print('Form is not valid')
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = ActivationForm()
+
+    c = {'form': form, 'userid': userid}
+    return render(request, 'registration/activate.html', c)
 
 
 def _getSession(json):

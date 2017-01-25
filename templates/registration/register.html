@@ -40,6 +40,17 @@
               <input type="password" class="form-control" id="password2" name="password2" placeholder="Password (again)">
             </div>
           </div>
+          <div class="form-group hidden">
+            <div class="col-sm-10">
+              <input type="text" class="form-control" id="redirect" name="redirect">
+            </div>
+          </div>
+          <div class="form-group hidden">
+            <div class="col-sm-2">
+              <input type="text" class="form-control" id="lang" name="lang">
+            </div>
+          </div>
+
           <div class="form-group">
             {% if form.errors %}
             <p>{{ form.non_field_errors }}</p>
@@ -50,7 +61,42 @@
           </div>
         </form>
     </div>
-    Already registered? <a href="{% url 'login_user' %}"> Click here to login</a>
+    Already registered? <a onclick="loginPage()" href="#">Click here to login</a>
   </div>
 </div>
+
+
+<script>
+    var fromUri;
+    var urlParams;
+    (window.onpopstate = function () {
+        var match,
+            pl     = /\+/g,  // Regex for replacing addition symbol with a space
+            search = /([^&=]+)=?([^&]*)/g,
+            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+            query  = window.location.search.substring(1);
+
+        urlParams = {};
+        while (match = search.exec(query)) {
+            urlParams[decode(match[1])] = match[2];
+        }
+
+        fromUri = urlParams['fromURI'];
+        console.log(decode(fromUri));
+        document.getElementById('redirect').value=decode(fromUri);
+
+        lang = urlParams['lang'];
+        document.getElementById('lang').value=lang;
+
+    })();
+
+    function loginPage() {
+        url = "/login";
+        if (fromUri != 'undefined') {
+            encoded = fromUri;
+            url = url + '?fromURI=' + encoded;
+        }
+        window.location = url;
+    }
+</script>
 {% endblock %}

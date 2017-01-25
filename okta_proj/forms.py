@@ -12,6 +12,7 @@ class LoginForm(forms.Form):
         widget=forms.PasswordInput(attrs=dict(required=True, max_length=30, render_value=False)),
         label=_("password"),
         error_messages={'invalid': _("Minimum length 4. Must contain at least 1 digit, 1 uppercase letter, 1 lowercase letter")})
+    redirect = forms.CharField(required=False);
 
 
 class RegistrationForm(forms.Form):
@@ -28,6 +29,8 @@ class RegistrationForm(forms.Form):
         widget=forms.PasswordInput(attrs=dict(required=True, max_length=30, render_value=False)),
         label=_("password (again)"),
         error_messages={'invalid': _("Minimum length 4. Must contain at least 1 digit, 1 uppercase letter, 1 lowercase letter")})
+    redirect = forms.CharField(required=False);
+    lang = forms.CharField(required=False);
 
     def clean_email(self):
         """
@@ -61,3 +64,11 @@ class mfaForm(forms.Form):
     stateToken = forms.CharField(max_length=100, required=True)
     factorId = forms.CharField(max_length=100, required=True)
     provider = forms.CharField(max_length=100, required=True)
+
+
+class ActivationForm(forms.Form):
+    password = forms.RegexField(
+        regex=r'^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{4,30}$',
+        widget=forms.PasswordInput(attrs=dict(required=True, max_length=30, render_value=False)),
+        label=_("password"),
+        error_messages={'invalid': _("Minimum length 4. Must contain at least 1 digit, 1 uppercase letter, 1 lowercase letter")})

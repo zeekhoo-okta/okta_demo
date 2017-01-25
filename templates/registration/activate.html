@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock title %}
+
+{% block content %}
+<div class="container">
+  <div class="login-container">
+
+    <div class="panel panel-default">
+      <div class="login-style">
+
+        <div class="panel-body">
+
+          <div id="login_form">
+            <form class="form-horizontal" name="ActivationForm" action="{% url 'activate_user' userid %}" method="post">
+              {% csrf_token %}
+              {% if next %}
+                <input type="hidden" name="next" value="{{ next }}" />
+              {% endif %}
+              <h2>Enter your password to activate</h2>
+              <div class="form-group {% if form.password.errors %} has-error {% endif %}">
+                  <p>{{ form.password.errors }}</p>
+                <div class="col-sm-4">
+                  <input type="password" class="form-control" id="pw" name="password" placeholder="Password">
+                </div>
+              </div>
+              <div class="form-group">
+                <div class="col-sm-offset-0 col-sm-4">
+                  {% if form.errors %}
+                    <p>{{ form.non_field_errors }}</p>
+                    <p>Your username and password didn't match. Please try again.</p>
+                  {% endif %}
+                  <button type="submit" class="btn btn-block btn-primary">Activate</button>
+                </div>
+              </div>
+            </form>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</div>
+{% endblock %}

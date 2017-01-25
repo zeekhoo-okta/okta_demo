@@ -5,7 +5,6 @@
 <div class="container">
   <div class="login-container">
 
-
     <div class="panel panel-default">
       <div class="login-style">
 
@@ -30,6 +29,11 @@
                   <input type="password" class="form-control" id="pw" name="password" placeholder="Password">
                 </div>
               </div>
+              <div class="form-group hidden">
+                <div class="col-sm-12">
+                  <input type="text" class="form-control" id="redirect" name="redirect">
+                </div>
+              </div>
               <div class="form-group">
                 <div class="col-sm-offset-0 col-sm-4">
                   {% if form.errors %}
@@ -40,8 +44,15 @@
                 </div>
               </div>
             </form>
-            Don't have a login? <a href="{% url 'register_user' %}"> Click here to sign up</a>
-
+            Don't have an account? <a onclick="regPage()" href="#">Click here to sign up</a>
+            <!--<a href="{% url 'register_user' %}"> Click here to sign up</a>-->
+            <br><br>
+            <select id="lang">
+              <option value="en">English</option>
+              <option value="de">Deutsch</option>
+              <option value="fr">Francais</option>
+              <option value="es">Espanol</option>
+            </select>
           </div>
 
         </div>
@@ -52,4 +63,35 @@
 
   </div>
 </div>
+
+<script>
+    var fromUri;
+    var urlParams;
+    (window.onpopstate = function () {
+        var match,
+            pl     = /\+/g,  // Regex for replacing addition symbol with a space
+            search = /([^&=]+)=?([^&]*)/g,
+            decode = function (s) { return decodeURIComponent(s.replace(pl, " ")); },
+            query  = window.location.search.substring(1);
+
+        urlParams = {};
+        while (match = search.exec(query)) {
+            urlParams[decode(match[1])] = match[2];
+        }
+        fromUri = urlParams['fromURI'];
+        console.log(decode(fromUri));
+        document.getElementById('redirect').value=decode(fromUri);
+    })();
+
+    function regPage() {
+        url = "/register";
+        if (fromUri != 'undefined') {
+            encoded = fromUri;
+            url = url + '?fromURI=' + encoded;
+        }
+        url = url + '&lang=' + document.getElementById('lang').value
+        window.location = url;
+    }
+
+</script>
 {% endblock %}
