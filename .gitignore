@@ -5,7 +5,7 @@ env
 __pycache__
 *.sqlite3
 .idea/*
-.env
+.env*
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
