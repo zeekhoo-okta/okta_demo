@@ -28,7 +28,7 @@ DEBUG = os.environ.get('DEBUG')
 ALLOWED_HOSTS = [
     'localhost', '127.0.0.1', '[::1]',
     'okta-demo-dev.us-west-2.elasticbeanstalk.com'
-    ]
+]
 
 # Okta specific variables
 OKTA_API_TOKEN = os.environ.get('OKTA_API_TOKEN')
